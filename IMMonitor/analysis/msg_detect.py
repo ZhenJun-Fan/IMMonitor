@@ -14,6 +14,7 @@ ACCESS_TOKEN = '24.ad351b35b33ecadfead85aec0b556ebf.2592000.1554274477.282335-15
 DETECT_URL_IMG = "https://aip.baidubce.com/rest/2.0/solution/v1/img_censor/user_defined"
 DETECT_URL_TEXT = 'https://aip.baidubce.com/rest/2.0/antispam/v2/spam'
 
+# 消息融合后的标签 <key-value>
 img_type = {'1': '色情', '2': '性感', '3': '暴恐', '4': '恶心', '5': '水印码', '6': '二维码', '7': '条形码', '8': '政治人物', '9': '敏感词'}
 text_label = {'11': '暴恐违禁', '12': '文本色情', '13': '政治敏感', '14': '恶意推广', '15': '低俗辱骂', '16': '低质灌水'}
 
@@ -177,10 +178,10 @@ def recognize_speech(voice):
 def unify_detect_result(msg_type, msg_id, result):
     """
     抽取消息的检测结果，融合为统一的数据格式
-    :param msg_type: 消息类型 文本/图像
-    :param msg_id: 消息id
-    :param result: 消息检测结果返回的数据
-    :return: 统一格式后的数据
+    :param      msg_type:       消息类型 文本/图像
+    :param      msg_id:         消息id
+    :param      result:         消息检测结果返回的数据
+    :return:    result_list:    统一格式后的数据
     """
 
     result_list = []
@@ -213,3 +214,4 @@ def unify_detect_result(msg_type, msg_id, result):
                 result_list.append(temp_dict)
     return result_list
 
+# 这是我修改的

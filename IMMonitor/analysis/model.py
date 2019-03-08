@@ -22,15 +22,15 @@ class DetectResults(Base):
     ----------------------------------------------------------------------
     """
 
-    id = db.Column(db.Integer, primary_key=True, auto_increment=True)    # 消息id 自动递增
-    msg_id = db.Column(db.Integer)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)    # 消息id 自动递增
+    msg_id = db.Column(db.Integer, primary_key=True)
     # msg_type = db.Column(db.Enum('Text', 'Picture'), comment='消息类别，文本或者图像')
     # log_id = db.Column(db.Long)                     # API接口调用时，正确调用生成的唯一标识码，用于问题定位
 
     # 成功返回信息
     spam_type = db.Column(db.String(20), comment="审核结果状态")  # data, review/reject
     result_info = db.Column(db.String(50), comment="审核结果敏感信息")  # msg, hit
-    result_ratio = db.Column(db.float, comment="审核结果敏感信息得分概率")  # probability, score
+    result_ratio = db.Column(db.Float, comment="审核结果敏感信息得分概率")  # probability, score
     result_label = db.Column(db.String(20), comment="审核结果敏感信息类别")   # type, label
 
     # # 文本检测结果
@@ -49,8 +49,7 @@ class DetectResults(Base):
     def save(cls, result_list):
         """
         保存检测结果数据
-        :param msg_type：消息类型 -- 文本 or 图像
-        :param res：传入消息检测返回的结果
+        :param      result_list：    传入消息检测返回的结果
         :return:
         """
 
