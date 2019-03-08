@@ -9,6 +9,7 @@
 
 from IMMonitor.db.common import db, Base
 import logging
+from IMMonitor.analysis.msg_detect import *
 
 
 class MsgDetectResult(Base):
@@ -22,8 +23,8 @@ class MsgDetectResult(Base):
     ----------------------------------------------------------------------
     """
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)    # 消息id 自动递增
-    msg_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, auto_increment=True)    # 消息id 自动递增
+    msg_id = db.Column(db.Integer)
     # msg_type = db.Column(db.Enum('Text', 'Picture'), comment='消息类别，文本或者图像')
     # log_id = db.Column(db.Long)                     # API接口调用时，正确调用生成的唯一标识码，用于问题定位
 
@@ -78,3 +79,13 @@ class MsgDetectResult(Base):
 
         return cls.query.filter_by(msg_id=msg_id).all()
         # return DetectResults.query.all()
+
+
+# res = detect_text("大哥，你有AK47吗？我还要海洛因，冰毒和白粉，越多越好！")
+# print(res)
+# uni_res = unify_detect_result('Text', 1234, res)
+#
+# MsgDetectResult.batch_insert(uni_res)
+# ddd = MsgDetectResult.get_msg_res(1234)
+# print(ddd)
+

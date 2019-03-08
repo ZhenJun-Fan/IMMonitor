@@ -36,6 +36,9 @@ from IMMonitor.wx.message import bp_wx_message
 app.register_blueprint(bp_wx_message)
 from IMMonitor.wx.contact import bp_wx_contact
 app.register_blueprint(bp_wx_contact)
+from IMMonitor.analysis import bp_analysis
+app.register_blueprint(bp_analysis)
+
 
 def initialize():
     init_database()

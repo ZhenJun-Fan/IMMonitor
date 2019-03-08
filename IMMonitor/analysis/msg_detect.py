@@ -210,18 +210,9 @@ def unify_detect_result(msg_type, msg_id, result):
             for detect_result in result['reject']:
                 temp_dict['msg_id'] = msg_id
                 temp_dict['spam_type'] = 'reject'
-                temp_dict['result_info'] = detect_result['hit']
+                temp_dict['result_info'] = ','.join(detect_result['hit'])
                 temp_dict['result_ratio'] = detect_result['score']
                 temp_dict['result_label'] = detect_result['label'] + 10
                 result_list.append(temp_dict)
     return result_list
-
-
-# 这是我修改的
-
-
-# BASE_DIR = os.path.dirname(__file__)
-# sys.path.append(BASE_DIR)
-#
-# print(detect_text('我们明天拿枪去天安门杀人，我草你妈'))
 
