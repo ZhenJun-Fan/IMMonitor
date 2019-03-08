@@ -11,11 +11,13 @@ import os
 import sys
 from flask_cors import CORS
 
+from IMMonitor import app, initialize
+from IMMonitor.socket import socketio
+
 BASE_DIR = os.path.dirname(__file__)
 sys.path.append(BASE_DIR)
 
-from IMMonitor import app, initialize
-from IMMonitor.socket import socketio
+
 if __name__ == '__main__':
     initialize()
     CORS(app, resources=r'/*', supports_credentials=True)
