@@ -38,7 +38,10 @@ from IMMonitor.wx.contact import bp_wx_contact
 app.register_blueprint(bp_wx_contact)
 from IMMonitor.analysis import bp_analysis
 app.register_blueprint(bp_analysis)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 29decd6cdf5f4f4197f580b05507b3c5714ae935
 
 def initialize():
     init_database()

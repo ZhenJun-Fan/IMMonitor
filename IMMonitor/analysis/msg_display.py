@@ -56,5 +56,6 @@ def user_name_msg_out_line_num(group_name):
         user_msg_out_line_num_dict['name'] = user_name
         user_msg_out_line_num_dict['count'] = account_msg_out_line(user_name)
         user_msg_out_line_num_list.append(user_msg_out_line_num_dict)
-    return user_msg_out_line_num_list
+    # return user_msg_out_line_num_list
+    return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=group_danger_dict))
 
