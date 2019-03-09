@@ -47,8 +47,7 @@ class MsgDetectResult(Base):
     def batch_insert(cls, result_list):
         """
         批量插入检测结果数据
-        :param msg_type：消息类型 -- 文本 or 图像
-        :param res：传入消息检测返回的结果
+        :param      result_list：    传入消息检测返回的结果
         :return:
         """
 
@@ -70,10 +69,10 @@ class MsgDetectResult(Base):
     def get_msg_res(cls, msg_id):
         """
         查询某个消息的检测结果
-        :param msg_id: 查询消息所对应的id
-        :return: DetectResults
+        :param      msg_id:         查询消息所对应的id
+        :return:    DetectResults
         """
 
-        return cls.query.filter_by(msg_id=msg_id).all()
+        return cls.spam_type.query.filter_by(msg_id=msg_id).all()
         # return DetectResults.query.all()
 

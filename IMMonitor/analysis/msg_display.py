@@ -31,12 +31,12 @@ def account_msg_out_line(msg_id_list):
     return num
 
 
-def get_username_msg_id(group_name, user_name):
+def get_user_name_msg_id(group_name, user_name):
     """
     获得某个成员所有消息的id列表
-    :param      group_name:      成员所对应的群名称
-    :param      user_name:       成员名称/昵称
-    :return:    msg_id_list:     所有消息的id列表
+    :param      group_name:      某个成员所对应的群名称
+    :param      user_name:       某个成员名称/昵称
+    :return:    msg_id_list:     某个成员所有消息的id列表
     """
     msg_id_list = db.session.query(WxGroupMessage.MsgId).filter_by(GroupNickName=group_name, FromUserName=user_name).all()
     return msg_id_list
