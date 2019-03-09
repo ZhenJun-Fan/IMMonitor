@@ -10,7 +10,8 @@ from sqlalchemy import and_
 from IMMonitor import app
 from IMMonitor.db.common import db
 from IMMonitor.analysis.model import MsgDetectResult
-from IMMonitor.wx.model import WxGroupMessage
+from IMMonitor.wx.model import WxGroupMessage, WxGroup
+import re
 
 
 ACCESS_TOKEN = '24.5066b60e5aa6af8577c4aadaec727cd8.2592000.1546587768.282335-15056684'
@@ -27,6 +28,7 @@ def text_dectect():
     detect_result = msg_detect.detect_text(text)
     detect_result = msg_detect.unify_detect_result(msg_type='Text', msg_id='123456', result=detect_result)
     MsgDetectResult.batch_insert(detect_result)
+
     return jsonify({
         'ok': 'ok'
     })
@@ -46,13 +48,71 @@ def text_dectect():
 #     return jsonify({'ok': 'ok'})
 
 
-# 4. 统计单个群消息总数，每种违规消息（比如暴恐，色情，政治敏感等）数量，计算各种违规消息占比，以雷达图展示
+# 2.识别每个群违规信息关键词，绘制词云图
+@app.route('/analysis/msg_keywords')
+def msg_keywords():
+    """
+    识别并统计每个群违规信息关键词
+    :return:
+    """
+    args = request.args
+    label = args.get('label')
+    group_id = args.get('group_id')
+
+    if not all([label, group_id]):
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+    # 数据库交互，取出每条违规消息敏感词列表
+    keywords = db.session.query(MsgDetectResult.result_info, WxGroupMessage)\
+        .filter(and_(WxGroupMessage.group_id == group_id, MsgDetectResult.msg_id == WxGroupMessage.MsgId)).all()
+    keywords_list = []
+    for keyword in keywords:
+        keywords_list += keyword[0].split(',')
+    keywords_dict = {}
+    # 桶排序统计每条违规消息敏感词频数
+    for key_word in keywords_list:
+        if not keywords_dict.get(key_word):
+            keywords_dict[key_word] = 1
+        else:
+            keywords_dict[key_word] = keywords_dict[key_word] + 1
+
+    return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=keywords_dict))
+
+
+# 3.每个群成员发送违规消息量统计
+@app.route('/analysis/member_danger')
+def member_danger():
+    """
+    统计指定群成员发送违规消息量
+    :return:
+    """
+    args = request.args
+    label = args.get('label')
+    group_id = args.get('group_id')
+
+    if not all([label, group_id]):
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+    # 数据库交互，取出发出每条违规消息的成员名列表
+    danger_list = db.session.query(MsgDetectResult, WxGroupMessage.FromUserNickName)\
+        .filter(and_(WxGroupMessage.group_id == group_id, MsgDetectResult.msg_id == WxGroupMessage.MsgId)).all()
+    member_list = {}
+    # 桶排序实现群成员违规消息统计
+    for danger in danger_list:
+        UserNickName = danger[1]
+        if not member_list.get(UserNickName):
+            member_list[UserNickName] = 1
+        else:
+            member_list[UserNickName] = member_list[UserNickName] + 1
+
+    return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=member_list))
+
+
+# 4. 统计单个群消息总数，每种违规消息（比如暴恐，色情，政治敏感等）数量
 @app.route('/analysis/group_danger')
 def group_danger():
     args = request.args
     label = args.get('label')
     group_id = args.get('group_id')
-    if not all([label,group_id]):
+    if not all([label, group_id]):
         return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
 
     danger_list = db.session.query(WxGroupMessage, MsgDetectResult)\
@@ -78,4 +138,36 @@ def group_danger():
     group_danger_dict['恶心反感'] = label_dict['4'] + label_dict['24']
 
     return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=group_danger_dict))
+
+
+# 5.单个群每天各时段违规消息占比变化趋势图
+@app.route('/analysis/day_danger')
+def day_danger():
+    """
+    单个群每天各时段违规消息数量
+    :return:
+    """
+    args = request.args
+    label = args.get('label')
+    group_id = args.get('group_id')
+
+    if not all([label, group_id]):
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+
+    # 数据库交互，取出发出每条违规消息的成员名列表
+    date_time_list = db.session.query(MsgDetectResult, WxGroupMessage.date_created)\
+        .filter(and_(WxGroupMessage.group_id == group_id, MsgDetectResult.msg_id == WxGroupMessage.MsgId)).all()
+    print(date_time_list)
+
+    date_list = []
+    hour_list = []
+    # 桶排序实现群成员违规消息统计
+    for time in date_time_list:
+        # time[1]: 2019-03-09 11:14:47.574616
+        temp = re.search(r"(\d{4}-\d{1,2}-\d{1,2}\s\d{1,2}:\d{1,2}):\d{1,8}", time[1])
+        print("temp:", temp)
+        date_list.append(temp[0])
+        hour_list.append(temp[1])
+
+    return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=date_list))
 
