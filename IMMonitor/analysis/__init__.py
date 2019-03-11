@@ -141,11 +141,11 @@ def group_danger():
 
 
 # 5.单个群每天各时段违规消息占比变化趋势图
-@app.route('/analysis/day_danger')
-def day_danger():
+@app.route('/analysis/datetime_danger')
+def datetime_danger():
     """
     单个群每天各时段违规消息数量
-    :return:
+    :return: 每天违规消息数量和每天中各小时的违规消息数量
     """
     args = request.args
     label = args.get('label')
@@ -157,17 +157,29 @@ def day_danger():
     # 数据库交互，取出发出每条违规消息的成员名列表
     date_time_list = db.session.query(MsgDetectResult, WxGroupMessage.date_created)\
         .filter(and_(WxGroupMessage.group_id == group_id, MsgDetectResult.msg_id == WxGroupMessage.MsgId)).all()
-    print(date_time_list)
 
-    date_list = []
-    hour_list = []
+    danger_dict = {"day": 0, "hour": 0}
+    danger_day_dict = {}
+    danger_hour_dict = {}
     # 桶排序实现群成员违规消息统计
     for time in date_time_list:
         # time[1]: 2019-03-09 11:14:47.574616
-        temp = re.search(r"(\d{4}-\d{1,2}-\d{1,2}\s\d{1,2}:\d{1,2}):\d{1,8}", time[1])
-        print("temp:", temp)
-        date_list.append(temp[0])
-        hour_list.append(temp[1])
+        # 统计每一天的违规消息数量
+        date_temp = re.search(r"(\d{4}-\d{1,2}-\d{1,2})", str(time[1]))
+        day = date_temp.group(0)
+        if not danger_day_dict.get(day):
+            danger_day_dict[day] = 1
+        else:
+            danger_day_dict[day] += 1
+        # 统计每天中各小时的违规消息数量
+        hour_temp = re.search(r"(\d{1,2}:\d{1,2})", str(time[1]))
+        hour = hour_temp.group(1).split(":")[0]
+        if not danger_hour_dict.get(hour):
+            danger_hour_dict[hour] = 1
+        else:
+            danger_hour_dict[hour] += 1
 
-    return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=date_list))
+    danger_dict['day'] = danger_day_dict
+    danger_dict['hour'] = danger_hour_dict
+    return jsonify(ret_val.gen(ret_val.CODE_SUCCESS, data=danger_dict))
 
