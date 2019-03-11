@@ -1,51 +1,33 @@
-from IMMonitor import app, ret_val
+import re
+
 from flask import Blueprint, jsonify, request
-from IMMonitor.analysis import msg_detect
-from IMMonitor.analysis.model import MsgDetectResult
-
-
-from flask import Blueprint, jsonify
 from sqlalchemy import and_
 
-from IMMonitor import app
+from IMMonitor import app, ret_val
 from IMMonitor.db.common import db
 from IMMonitor.analysis.model import MsgDetectResult
-from IMMonitor.wx.model import WxGroupMessage, WxGroup
-import re
+from IMMonitor.analysis import msg_detect
+from IMMonitor.analysis.model import MsgDetectResult
+from IMMonitor.wx.model import WxGroupMessage
 
 
 ACCESS_TOKEN = '24.5066b60e5aa6af8577c4aadaec727cd8.2592000.1546587768.282335-15056684'
 DETECT_URL_IMG = 'https://aip.baidubce.com/rest/2.0/solution/v1/img_censor/user_defined'
 DETECT_URL_TEXT = 'https://aip.baidubce.com/rest/2.0/antispam/v2/spam'
 
-
 bp_analysis = Blueprint('bp_analysis', __name__)
 
 
-@app.route('/analysis/text_dectect')
-def text_dectect():
-    text = '明天去天安门闹事'
-    detect_result = msg_detect.detect_text(text)
-    detect_result = msg_detect.unify_detect_result(msg_type='Text', msg_id='123456', result=detect_result)
-    MsgDetectResult.batch_insert(detect_result)
-
-    return jsonify({
-        'ok': 'ok'
-    })
-
-
-# @app.route('/analysis/group_danger')
-# def group_danger():
-#     danger_list = db.session.query(WxGroupMessage, MsgDetectResult)\
-#         .filter(and_(MsgDetectResult.result_label == 13,
-#                      WxGroupMessage.MsgId == MsgDetectResult.msg_id)).all()
-#     for danger in danger_list:
-#         print(danger[0].GroupNickName,
-#               danger[0].FromUserNickName,
-#               danger[0].Content,
-#               danger[1].result_info,
-#               danger[1].result_label)
-#     return jsonify({'ok': 'ok'})
+# @app.route('/analysis/text_dectect')
+# def text_dectect():
+#     text = '明天去天安门闹事'
+#     detect_result = msg_detect.detect_text(text)
+#     detect_result = msg_detect.unify_detect_result(msg_type='Text', msg_id='123456', result=detect_result)
+#     MsgDetectResult.batch_insert(detect_result)
+#
+#     return jsonify({
+#         'ok': 'ok'
+#     })
 
 
 # 2.识别每个群违规信息关键词，绘制词云图
@@ -60,7 +42,7 @@ def msg_keywords():
     group_id = args.get('group_id')
 
     if not all([label, group_id]):
-        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_id参数'))
     # 数据库交互，取出每条违规消息敏感词列表
     keywords = db.session.query(MsgDetectResult.result_info, WxGroupMessage)\
         .filter(and_(WxGroupMessage.group_id == group_id, MsgDetectResult.msg_id == WxGroupMessage.MsgId)).all()
@@ -90,7 +72,7 @@ def member_danger():
     group_id = args.get('group_id')
 
     if not all([label, group_id]):
-        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_id参数'))
     # 数据库交互，取出发出每条违规消息的成员名列表
     danger_list = db.session.query(MsgDetectResult, WxGroupMessage.FromUserNickName)\
         .filter(and_(WxGroupMessage.group_id == group_id, MsgDetectResult.msg_id == WxGroupMessage.MsgId)).all()
@@ -113,7 +95,7 @@ def group_danger():
     label = args.get('label')
     group_id = args.get('group_id')
     if not all([label, group_id]):
-        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_id参数'))
 
     danger_list = db.session.query(WxGroupMessage, MsgDetectResult)\
         .filter(and_(WxGroupMessage.group_id == group_id,
@@ -152,7 +134,7 @@ def datetime_danger():
     group_id = args.get('group_id')
 
     if not all([label, group_id]):
-        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_username参数'))
+        return jsonify(ret_val.gen(ret_val.CODE_PARAMS_ERR, extra_msg='需要传入label和group_id参数'))
 
     # 数据库交互，取出发出每条违规消息的成员名列表
     date_time_list = db.session.query(MsgDetectResult, WxGroupMessage.date_created)\
